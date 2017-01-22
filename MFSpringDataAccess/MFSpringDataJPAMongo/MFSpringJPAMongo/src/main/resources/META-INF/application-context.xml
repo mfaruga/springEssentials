@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd 
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.0.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+http://www.springframework.org/schema/data/jpa
+http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+http://www.springframework.org/schema/data/mongo 
+http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+
+	<import resource="transaction-settings.xml" />
+
+	<context:component-scan base-package="org.mfaruga.*" />
+	<!-- <jpa:repositories base-package="org.mfaruga.MFSpringJPAMongo.DAO"></jpa:repositories> -->
+
+	<context:property-placeholder
+		location="classpath:META-INF/datasource.properties" />
+
+	<bean id="MFPostgreSQLDS" class="org.apache.commons.dbcp2.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="org.postgresql.Driver"></property>
+		<property name="url" value="jdbc:postgresql://localhost:5432/JPABasic"></property>
+		<property name="username" value="${username}"></property>
+		<property name="password" value="${password}"></property>
+		<property name="initialSize" value="3"></property>
+		<property name="maxTotal" value="50"></property>
+	</bean>
+
+	<!-- <bean id="UserRepository" class="org.mfaruga.MFSpringJPAMongo.repository.UserRepository"></bean> -->
+
+	<!-- Mongo config -->
+	<!-- <mongo:mongo host="192.168.36.10" port="27017" /> -->
+
+	<bean id="mappingContext"
+		class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
+
+	<mongo:auditing mapping-context-ref="mappingContext"
+		auditor-aware-ref="auditor" />
+
+	<mongo:db-factory id="mongoDbFactory" mongo-ref="mongo"
+		dbname="MFSpringMongo" />
+	<mongo:mapping-converter id="mongoConverter"
+		db-factory-ref="mongoDbFactory" mapping-context-ref="mappingContext" />
+
+	<bean id="mongo" class="org.springframework.data.mongodb.core.MongoFactoryBean">
+		<property name="host" value="localhost" />
+		<property name="port" value="27017" />
+	</bean>
+
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+		<constructor-arg name="mongoConverter" ref="mongoConverter" />
+	</bean>
+
+	<mongo:repositories base-package="org.mfaruga.MFSpringJPAMongo.repository"
+		mongo-template-ref="mongoTemplate" />
+
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+
+	<bean id="MFPostgreSQLJDBCTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<constructor-arg ref="MFPostgreSQLDS"></constructor-arg>
+	</bean>
+
+	<bean id="auditor"
+		class="org.mfaruga.MFSpringJPAMongo.audit.MFSpringDataAuditHelper"></bean>
+
+</beans>

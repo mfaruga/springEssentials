@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd 
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.0.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+	<context:component-scan base-package="org.mfaruga.*" />
+
+	<aop:aspectj-autoproxy>
+		<aop:include name="MFAspectLogger" />
+	</aop:aspectj-autoproxy>
+
+	<context:property-placeholder
+		location="classpath:META-INF/datasource.properties" />
+
+	<bean id="MFAspectLogger" class="org.mfaruga.MFSpringFirst.advices.MFAspectLogger" />
+
+	<bean id="Greeter" class="org.mfaruga.MFSpringFirst.impl.GreetingServiceImpl"
+		init-method="initialization">
+		<constructor-arg index="0" type="java.lang.Integer"
+			value="125" />
+		<constructor-arg index="1" type="java.lang.String"
+			value="${Description}" />
+		<property name="someIntegerProperty" value="5" />
+		<property name="stringPropertyFromFile" value="${Description}" />
+		<property name="reportTime" value="#{new java.util.Date()}" />
+	</bean>
+
+<!--  	<bean id="MFBeforeMethod" class="org.mfaruga.MFSpringFirst.advices.MFBeforeMethod"/>
+
+	<bean id="GreeterProxy" class="org.springframework.aop.framework.ProxyFactoryBean" >
+			<property name="target" ref="Greeter" />
+		<property name="interceptorNames">
+			<list>
+				<value>MFBeforeMethod</value>
+			</list>
+		</property>
+	</bean>
+-->
+
+</beans>
